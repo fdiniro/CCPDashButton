@@ -1,10 +1,10 @@
 /*
  * ***************************************************************
- * 
+ *
  *  CCPDashButton
- *  
+ *
  *  2019 Fabio Di Niro
- * 
+ *
  * ***************************************************************
  * This file is part of CCPDashButton.
 
@@ -27,7 +27,7 @@
 /*
  * Configuration, modify accordingly to your environment
  */
- 
+
 // Replace with your SSID and Password
 const char* ssid     = "MySSID";
 const char* password = "MyPassword";
@@ -39,7 +39,7 @@ const char* mqtt_user = "mqttuser";
 const char* mqtt_password = "mqttpassword";
 const char* mqtt_topic = "DashButton";
 
-// Replace with your preferred NTP server and time offset 
+// Replace with your preferred NTP server and time offset
 // GMT +1 = 3600
 // GMT +8 = 28800
 // GMT -1 = -3600
@@ -51,10 +51,12 @@ const long timeOffset = 7200;
 const char* dashButtonID = "Dash01";
 const char* handlerID = "MyHandler";
 
-// Specify the average cluster provisiomning time in your infrastructure: the progress bar will reach 99% in that time and then 
+// Specify the average cluster provisiomning time in your infrastructure: the progress bar will reach 99% in that time and then
 // 100% when it really gets the cluster created confirmation
 const int averageProvisioningTime = 160;
 /*
  * Configuration end
  */
 
+
+// this is a test

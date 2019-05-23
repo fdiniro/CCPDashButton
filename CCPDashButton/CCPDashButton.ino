@@ -158,7 +158,8 @@ boolean provisionCluster()
 {
   // Rad the timestamp
   timeStamp = timeClient.getFormattedTime();
-  // Prepare the message. As CCP does not allow ":" in the cluster name so we're stripping those chars
+  // Prepare the message.
+  // As CCP does not allow ":" in the cluster name so we're stripping those chars
   Message = timeStamp
   Message.remove(2,1);
   Message.remove(4,1);
