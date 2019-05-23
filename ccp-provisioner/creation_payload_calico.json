@@ -1,0 +1,52 @@
+{
+    "is_harbor_enabled": false,
+    "provider_client_config_uuid": "51b955f0-57c0-4da7-92fb-202d0342b3aa",
+    "name": "dashtest",
+    "kubernetes_version": "1.12.6",
+    "description": "test description",
+    "datacenter": "RMLAB",
+    "cluster": "Goldrake",
+    "resource_pool": "Goldrake/Resources",
+    "networks": [
+      "192.168.100-100",
+      "k8-priv-iscsivm-network"
+    ],
+    "datastore": "ccp-tenant",
+    "storage_class": "vsphere",
+    "workers": 2,
+    "ssh_user": "ccpuser",
+    "ssh_key": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICJcqt4Qz3WTOE78h1aIjuminBsPtMjl+3Bap0CBICqS rtortori@RTORTORI-M-406H",
+    "type": 1,
+    "masters": 1,
+    "deployer_type": "kubeadm",
+    "ingress_vip_pool_id": "f22d6935-09fc-4c41-9438-6d1b625312b0",
+    "load_balancer_ip_num": 2,
+    "is_istio_enabled": false,
+    "aws_iam_enabled": false,
+    "worker_node_pool": {
+      "vcpus": 2,
+      "memory": 16384,
+      "template": "RMLAB - MultiCloud/ccp-tenant-image-1.12.6-ubuntu18-3.2.0"
+    },
+    "master_node_pool": {
+      "vcpus": 2,
+      "memory": 16384,
+      "template": "RMLAB - MultiCloud/ccp-tenant-image-1.12.6-ubuntu18-3.2.0"
+    },
+    "node_ip_pool_uuid": "f22d6935-09fc-4c41-9438-6d1b625312b0",
+    "network_plugin": {
+      "name": "calico",
+      "status": "",
+      "details": "{\"pod_cidr\":\"172.254.0.0/16\"}"
+    },
+    "deployer": {
+      "proxy_cmd": "StrictHostKeyChecking no\nHost 15.29.3?.* !15.29.30.* !15.29.31.*\n ProxyCommand nc --proxy 10.193.231.10:8111 --proxy-type socks4 %h %p",
+      "provider_type": "vsphere",
+      "provider": {
+        "vsphere_datacenter": "RMLAB",
+        "vsphere_datastore": "ccp-tenant",
+        "vsphere_client_config_uuid": "51b955f0-57c0-4da7-92fb-202d0342b3aa",
+        "vsphere_working_dir": "/RMLAB/vm"
+      }
+    }
+  }

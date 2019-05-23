@@ -1,0 +1,203 @@
+#!/bin/bash
+
+#
+##############################################################################
+#   
+#   MQTTHandler
+#
+#   Part of CCPDashButton v.1.0
+#
+#   2019 Fabio Di Niro
+#
+##############################################################################
+#    This file is part of CCPDashButton.
+#
+#    CCPDashButton is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    Nome-Programma is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with Nome-Programma.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+##############################################################################
+# MQTT server configuration parameters
+##############################################################################
+MqttHost="1.2.3.4"
+MqttTopic="DashButton"
+MqttUser="mqttuser^"
+MqttPassword="mqttpassword"
+HandlerID="MyHandler"
+MySocksProxy="socks5h://my.proxy.com"
+
+##############################################################################
+# ClusterCreatorScript launch string
+##############################################################################
+
+# due to an issue with python script launch from bash, this string is not used, you should supply the whole command in line 100
+clusterCreatorScript="./cluster_creator.py myCCP.mydomain.org admin MyCCPPassowrd $clusterName 172.200.0.0/16 creation_payload_calico.json calico"
+
+##############################################################################
+# End of configurable options
+##############################################################################
+
+echo "MQTTHandler"
+echo "MQTT protocol handler for CCPDashButton v. 1.0"
+echo "2019 Fabio Di Niro"
+echo "Licensed under GNU General Public License v3.0"
+echo "Checkout https://github.com/fdiniro/CCPDashButton"
+echo
+
+mqtt_sub_pipe="mqtt_sub_pipe"
+mqtt_sub_pipe_copy="mqtt_sub_pipe_copy"
+mqtt_sub_pipe_last="mqtt_sub_pipe_last"
+cluster_creator_pipe="cluster_creator_pipe"
+cluster_creator_pipe_copy="cluster_creator_pipe_copy"
+cluster_creator_pipe_last="cluster_creator_pipe_last"
+CurrentStatus="StatusUnavailable"
+clusterName=""
+clusterIP=""
+touch $mqtt_sub_pipe
+touch $mqtt_sub_pipe_last
+touch $cluster_creator_pipe
+touch $cluster_creator_pipe_last
+# If Ctrl_C is pressed then we clean up something
+cleanupAndExit() {
+  echo "Cleaning up..."
+	pid=$(cat mosquitto_subPidfile)
+	kill $pid >/dev/null 2>&1
+	rm -f $mqtt_sub_pipe
+  rm -f $mqtt_sub_pipe_copy
+  rm -f $mqtt_sub_pipe_last
+  if [[ "$?" -eq "0" ]];
+  then
+     echo "Exit success"
+  else
+     echo "Exited uncleanly, please check that no MQTT process are still running and that mosquitto_subPidfile was deleted"
+		 exit 1
+  fi
+	if [ -z "$cluster_creator_pidfile" ]
+	then
+		pid=$(cat cluster_creator_pidfile)
+		kill $pid 2>/dev/null
+		rm -f $cluster_creator_pipe
+    rm -f $cluster_creator_pipe_copy
+    rm -f $cluster_creator_pipe_last
+	fi
+	exit 0
+}
+
+# Provision a ProvisionCluster
+provisionCluster() {
+	clusterName=$1
+	echo "Provisioning cluster $clusterName"
+  ( ./cluster_creator.py myCCP.mydomain.org admin MyCCPPassowrd $clusterName 172.200.0.0/16 creation_payload_calico.json calico >$cluster_creator_pipe 2>&1) &
+	#("$clusterCreatorScript" >$cluster_creator_pipe 2>&1) &
+	echo "$!" > cluster_creator_pidfile
+}
+
+# If ctrl+c is pressed then execute cleanupAndExit function
+trap cleanupAndExit INT
+
+(mosquitto_sub -h $MqttHost -t $MqttTopic -u $MqttUser -P $MqttPassword -q 1 --proxy $MySocksProxy >$mqtt_sub_pipe 2>/dev/null) &
+echo "$!" > mosquitto_subPidfile
+if [ $? -ne 0 ]
+then
+	echo "Can't connect to $MqttHost"
+	exit 1
+else
+	echo "Connected to $MqttHost"
+	CurrentStatus="StatusAvailable"
+fi
+
+while [ 1 ]
+do
+	# As we propably need to read two fifo we can't be stuck waiting to read one line from one fifo
+	# so we read the fifo with a timeout of 1 second
+  #sleep 1
+
+  # Let's check if there is new output from the mosquitto_sub
+  cp $mqtt_sub_pipe $mqtt_sub_pipe_copy
+  line=$(diff --new-line-format="%L" --old-line-format="" --unchanged-line-format=""  $mqtt_sub_pipe_last $mqtt_sub_pipe_copy)
+  cp $mqtt_sub_pipe_copy $mqtt_sub_pipe_last
+  if [ $? -eq 0 ]
+	then
+    # Split the message in (timestamp) sender command argument
+    sender=$(echo $line | cut -f2 -d" ")
+    command=$(echo $line | cut -f3 -d" ")
+    argument=$(echo $line | cut -f4 -d" ")
+
+		# Check that message is not coming from myself
+		if [ "$sender" != $HandlerID ]
+		then
+			case "$command" in
+			"GetStatus")
+				echo "GetStatus received, responding with the current status: $CurrentStatus"
+				# Prepare the message
+				timeStamp=(date +%T)
+				if [ $CurrentStatus == "StatusProvisioning" ]
+				then
+					message=$(date +%T)" $HandlerID $CurrentStatus $clusterName"
+				else
+					message=$(date +%T)" $HandlerID $CurrentStatus"
+				fi
+				echo "Sending message: $message"
+				mosquitto_pub -h $MqttHost -t "$MqttTopic" -u "$MqttUser" -P "$MqttPassword" --proxy $MySocksProxy -m "$message"
+			;;
+
+			"ProvisionCluster")
+				if [ $CurrentStatus == "StatusProvisioning" ]
+				then
+					echo "Provisioning request received during a provisioning in progress, request will be discarded"
+				else
+					echo "Provisionig request received from $sender, proceeding"
+					CurrentStatus="StatusProvisioning"
+					timeStamp=$(date +"%T")
+					clusterName=$argument
+					provisionCluster $clusterName
+				fi
+			;;
+
+			"*")
+				echo "Message from MQTT $line"
+			;;
+			esac
+		fi
+	fi
+
+	if [ $CurrentStatus == "StatusProvisioning" ]
+	then
+    # Let's check if there is new output from the cluster_creator script
+    cp $cluster_creator_pipe $cluster_creator_pipe_copy
+    line=$(diff --new-line-format="%L" --old-line-format="" --unchanged-line-format="" $cluster_creator_pipe_last $cluster_creator_pipe_copy )
+    cp $cluster_creator_pipe_copy $cluster_creator_pipe_last
+		if [ -n "$line" ]
+    then
+      echo "Message from cluster creator: $line"
+      if [[ $line == *"Master IP:"* ]]
+      then
+        clusterIP=${line#"Master IP:"}
+				message=$(date +%T)" $HandlerID StatusProvisioned $clusterIP"
+				echo "Sending message: $message"
+				mosquitto_pub -h $MqttHost -t "$MqttTopic" -u "$MqttUser" -P "$MqttPassword" --proxy $MySocksProxy -m "$message"
+        # Go back to StatusAvailable
+        CurrentStatus="StatusAvailable"
+      fi
+      if [[ $line == *"Creating cluster"* ]]
+      then
+        # Now we're sure that the cluster is provisioning but I should move this out of this block to use this info
+        echo "Cluster provisioning process inititated"
+      fi
+    fi
+	fi
+done
+
+
+echo "ERROR: I was not supposed to arrive here"
+exit 1

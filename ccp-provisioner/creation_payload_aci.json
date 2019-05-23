@@ -1,0 +1,53 @@
+{
+    "is_harbor_enabled": false,
+    "provider_client_config_uuid": "2c7fb197-8f28-4805-95ab-844fe97464b3",
+    "name": "dashbutton",
+    "kubernetes_version": "1.12.3",
+    "ssh_key": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICJcqt4Qz3WTOE78h1aIjuminBsPtMjl+3Bap0CBICqS rtortori@RTORTORI-M-406H",
+    "description": "Cluster from Dash Button",
+    "datacenter": "RMLAB",
+    "cluster": "Goldrake",
+    "resource_pool": "Goldrake/Resources",
+    "datastore": "ccp-tenant",
+    "storage_class": "vsphere",
+    "networks": [
+      "k8-priv-iscsivm-network"
+    ],
+    "workers": 2,
+    "ssh_user": "ccpuser",
+    "type": 1,
+    "masters": 1,
+    "deployer_type": "kubeadm",
+    "is_istio_enabled": true,
+    "registries_root_ca": [
+      ""
+    ],
+    "aws_iam_enabled": false,
+    "aws_iam_role_arn": "",
+    "worker_node_pool": {
+      "vcpus": 2,
+      "memory": 16384,
+      "template": "ccp-tenant-image-1.12.3-ubuntu18-3.1.0"
+    },
+    "master_node_pool": {
+      "vcpus": 2,
+      "memory": 16384,
+      "template": "ccp-tenant-image-1.12.3-ubuntu18-3.1.0"
+    },
+    "network_plugin": {
+      "name": "contiv-aci",
+      "status": "",
+      "details": "{\"node_vlan_cidr\":\"192.168.165.0/24\"}"
+    },
+    "aci_profile_uuid": "760bb3f4-785a-4286-b26d-909dc7fd2941",
+    "deployer": {
+      "proxy_cmd": "StrictHostKeyChecking no\nHost 15.29.3?.* !15.29.30.* !15.29.31.*\n ProxyCommand nc --proxy 10.193.231.10:8111 --proxy-type socks4 %h %p",
+      "provider_type": "vsphere",
+      "provider": {
+        "vsphere_datacenter": "RMLAB",
+        "vsphere_datastore": "ds1",
+        "vsphere_client_config_uuid": "2c7fb197-8f28-4805-95ab-844fe97464b3",
+        "vsphere_working_dir": "/RMLAB/vm"
+      }
+    }
+  }
