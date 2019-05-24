@@ -58,4 +58,4 @@ const int averageProvisioningTime = 160;
  * Configuration end
  */
 
-
+// Rick aiutame
