@@ -172,69 +172,6 @@ boolean provisionCluster()
   return mqttClient.publish(mqtt_topic, pubMsg, false);
 }
 
-void followProvisioning()
-{
-  // Query the handler waiting for provisioning completion and complete the progress bar in
-  // averageProvisioningTime seconds so to give the impression that the progress bar is really
-  // coming from the provisioning process
-  Heltec.display->clear();
-  Heltec.display->setTextAlignment(TEXT_ALIGN_CENTER);
-  Heltec.display->setFont(ArialMT_Plain_16);
-  Heltec.display->drawString(64, 0, "Provisioning");
-  Heltec.display->setFont(ArialMT_Plain_16);
-  Heltec.display->drawString(64, 15, clusterName);
-  int progress=10;
-  int stepEvery=0;
-  ProgressBar(progress);
-  checkStatus();
-  // We have to progress bar from 10 to 100% in averageProvisioningTime seconds
-  if (averageProvisioningTime < 90)
-  {
-    // One progress bar step every 1 second
-    stepEvery=1;
-  }
-  else
-  {
-    // One progress bar step every stepEvery seconds
-    stepEvery=averageProvisioningTime / 90;
-  }
-  // Wait for status to change while incrementing the progress bar
-  // after the averageProvisioningTime we wait 2 minutes more before declaring error timeout
-  int timeout=averageProvisioningTime+120;
-  int counter=0;
-
-  // the dash button will stay in this routine all the provisioning time, will exit just if
-  // the cluster provisioning has been complete or if a timeout occourred
-  while ( handlerStatus == "StatusProvisioning" && counter<timeout)
-  {
-    // The PubSub MQTT library needs the loop() function to be called to receive the messages
-    for (int i=0; i<10; i++)
-    {
-      mqttClient.loop();
-      delay(100);
-    }
-    progress = counter / stepEvery + 10;
-    if (progress>100)
-    {
-      progress=100;
-    }
-    ProgressBar(progress);
-    counter++;
-  }
-
-  // if we're here it means that the cluster has been provisioned or there is a major error
-  if (handlerStatus == "StatusProvisioned")
-  {
-    char *clust = const_cast<char*>(clusterName.c_str());
-    char *ipaddress = const_cast<char*>(clusterIP.c_str());
-    printMessageAndQuit(clust, ipaddress, "is ready.", 3, 30000);
-  }
-  else
-  {
-    printMessageAndQuit("Timeout", "", "", 1, 10000);
-  }
-}
-
 
 // this will be called by the PubSub library each time that a MQTT message is received
 void callBack(char* topic, byte* message, unsigned int length) {
@@ -433,29 +370,79 @@ void setup() {
     e++;
   }
 
+  // If Handler status is unavailable we simply quit
   if (handlerStatus =="StatusUnavailable")
   {
     Serial.println("Handler is unavailable, quitting");
     printMessageAndQuit("Handler", "unavailable", "", 2, 5000);
   }
 
-  if (handlerStatus == "StatusProvisioning")
+
+  // if Handler is available we request cluster provision and we wait for confirmation
+  if (handlerStatus == "StatusAvailable")
   {
-    followProvisioning();
+    Heltec.display->clear();
+    Heltec.display->setFont(ArialMT_Plain_16);
+    Heltec.display->drawString(25, 2, "Requesting");
+    Heltec.display->drawString(25, 15, "K8s cluster");
+    ProgressBar(5);
+    provisionCluster();
+
+    checkStatus();
+    // Wait up to 5 seconds to receive confirm of provisioning
+    e=0;
+    while ( handlerStatus != "StatusProvisioning" && e<5)
+    {
+      // The PubSub MQTT library needs the loop() function to be called to receive the messages
+      for (int i=0; i<10; i++)
+      {
+        mqttClient.loop();
+        delay(100);
+      }
+      e++;
+    }
+
+    if (handlerStatus != "StatusProvisioning")
+    {
+      Serial.println("Provisioning request was not confirmed");
+      printMessageAndQuit("Can't confirm", "provisioning", "request", 3, 5000);
+    }
+    Serial.println("Provisioning confirmed, waiting for completion");
   }
 
-  // Request cluster provision
+  // If we are here it means that the status is StatusProvisioning
+  // Query the handler waiting for provisioning completion and complete the progress bar in
+  // averageProvisioningTime seconds so to give the impression that the progress bar is really
+  // coming from the provisioning process
   Heltec.display->clear();
+  Heltec.display->setTextAlignment(TEXT_ALIGN_CENTER);
   Heltec.display->setFont(ArialMT_Plain_16);
-  Heltec.display->drawString(25, 2, "Requesting");
-  Heltec.display->drawString(25, 15, "K8s cluster");
-  ProgressBar(5);
-  provisionCluster();
-
+  Heltec.display->drawString(64, 0, "Provisioning");
+  Heltec.display->setFont(ArialMT_Plain_16);
+  Heltec.display->drawString(64, 15, clusterName);
+  int progress=10;
+  int stepEvery=0;
+  ProgressBar(progress);
   checkStatus();
-  // Wait up to 5 seconds to receive confirm of provisioning
-  e=0;
-  while ( handlerStatus != "StatusProvisioning" && e<5)
+  // We have to progress bar from 10 to 100% in averageProvisioningTime seconds
+  if (averageProvisioningTime < 90)
+  {
+    // One progress bar step every 1 second
+    stepEvery=1;
+  }
+  else
+  {
+    // One progress bar step every stepEvery seconds
+    stepEvery=averageProvisioningTime / 90;
+  }
+  // Wait for status to change while incrementing the progress bar
+  // after the averageProvisioningTime we wait 2 minutes more before declaring error timeout
+  int timeout=averageProvisioningTime+120;
+  int counter=0;
+
+  // the dash button will stay in this routine all the provisioning time, will exit just if
+  // the cluster provisioning has been complete or if a timeout occourred
+  while ( handlerStatus == "StatusProvisioning" && counter<timeout)
   {
     // The PubSub MQTT library needs the loop() function to be called to receive the messages
     for (int i=0; i<10; i++)
@@ -463,20 +450,26 @@ void setup() {
       mqttClient.loop();
       delay(100);
     }
-    e++;
+    progress = counter / stepEvery + 10;
+    if (progress>100)
+    {
+      progress=100;
+    }
+    ProgressBar(progress);
+    counter++;
   }
 
-  if (handlerStatus != "StatusProvisioning")
+  // if we're here it means that the cluster has been provisioned or there is a major error
+  if (handlerStatus == "StatusProvisioned")
   {
-    Serial.println("Provisioning request was not confirmed");
-    printMessageAndQuit("Can't confirm", "provisioning", "request", 3, 5000);
+    char *clust = const_cast<char*>(clusterName.c_str());
+    char *ipaddress = const_cast<char*>(clusterIP.c_str());
+    printMessageAndQuit(clust, ipaddress, "is ready.", 3, 30000);
   }
-
-
-  // Follow provisioing
-  Serial.println("Provisioning confirmed, waiting for completion");
-  ProgressBar(10);
-  followProvisioning();
+  else
+  {
+    printMessageAndQuit("Timeout", "", "", 1, 10000);
+  }
 
 
 
