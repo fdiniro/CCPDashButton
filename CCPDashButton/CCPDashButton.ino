@@ -42,7 +42,6 @@ void callBack(char* topic, byte* message, unsigned int length);
 PubSubClient mqttClient(mqtt_server, mqtt_port, callBack, espClient);
 NTPClient timeClient(udpClient, myNTPserver, timeOffset);
 
-// Variables
 String timeStamp;
 String Message;
 char pubMsg[50];
@@ -52,6 +51,7 @@ String clusterName="";
 String clusterIP="";
 
 
+// Setup the WiFi connection, return true if successful, false if connection attempt fails
 boolean WIFISetUp() {
   // Set WiFi to station mode and disconnect from an AP if it was previously connected
   WiFi.disconnect(true);
@@ -84,6 +84,8 @@ boolean WIFISetUp() {
   }
 }
 
+// Print am error message on the OLED display then wait "wait" milliseconds and then go back to deep sleep
+// the message to be printed may be on one, two or three lines
 void printMessageAndQuit(char* line1, char* line2, char* line3, int lines, int wait)
 {
   // Print the message on 1, 2 or 3 lines
@@ -138,11 +140,6 @@ boolean NTPSetup()
 }
 
 
-boolean sendCommand(String command, String argument)
-{
-  mqttClient.publish(mqtt_topic, pubMsg, false);
-}
-
 boolean checkStatus()
 {
   // Prepare the message
@@ -160,7 +157,7 @@ boolean provisionCluster()
   timeStamp = timeClient.getFormattedTime();
   // Prepare the message string
   // As CCP does not allow ":" in the cluster name so we're stripping those chars
-  Message = timeStamp
+  Message = timeStamp;
   Message.remove(2,1);
   Message.remove(4,1);
 
@@ -206,6 +203,8 @@ void followProvisioning()
   int timeout=averageProvisioningTime+120;
   int counter=0;
 
+  // the dash button will stay in this routine all the provisioning time, will exit just if
+  // the cluster provisioning has been complete or if a timeout occourred
   while ( handlerStatus == "StatusProvisioning" && counter<timeout)
   {
     // The PubSub MQTT library needs the loop() function to be called to receive the messages
@@ -222,6 +221,8 @@ void followProvisioning()
     ProgressBar(progress);
     counter++;
   }
+
+  // if we're here it means that the cluster has been provisioned or there is a major error
   if (handlerStatus == "StatusProvisioned")
   {
     char *clust = const_cast<char*>(clusterName.c_str());
@@ -235,14 +236,19 @@ void followProvisioning()
 }
 
 
+// this will be called by the PubSub library each time that a MQTT message is received
 void callBack(char* topic, byte* message, unsigned int length) {
-  char timeStamp[10];
-  char sender[25];
-  char command[25];
-  char argument[50];
-  Serial.println("Received message: ");
+  char first[10];
+  char second[25];
+  char third[25];
+  char fourth[50];
+  String timeStamp;
+  String sender;
+  String command;
+  String argument;
   String messageTemp;
 
+  Serial.println("Received message: ");
   for (int i = 0; i < length; i++) {
     Serial.print((char)message[i]);
     messageTemp += (char)message[i];
@@ -251,41 +257,42 @@ void callBack(char* topic, byte* message, unsigned int length) {
 
   // Split message string in
   // HH:mm:ss Sender Command Argument
-  sscanf(messageTemp.c_str(), "%s %s %s %s", timeStamp, sender, command, argument);
+  sscanf(messageTemp.c_str(), "%s %s %s %s", first, second, third, fourth);
+  timeStamp=String(first);
+  sender=String(second);
+  command=String(third);
+  argument=String(fourth);
 
   // Check that the message is not coming from myself
-  messageTemp=String(sender);
-  if (messageTemp == dashButtonID) {
+  if (sender == dashButtonID) {
+    Serial.println("Coming from my self, discarding");
     return;
   }
-  // Check that the message is coming from the right handlerID
-  if (messageTemp == handlerID)
+  // If the message is coming from the right handlerID, then we can take actions
+  if (sender == handlerID)
   {
-      messageTemp=String(command);
-      if (messageTemp == "StatusUnavailable")
+      if (command == "StatusUnavailable")
       {
-        Serial.println("Handler is unavailable, quitting");
-        printMessageAndQuit("Handler", "unavailable", "", 2, 5000);
+        handlerStatus="StatusUnavailable";
       }
 
-      if (messageTemp == "StatusAvailable")
+      if (command == "StatusAvailable")
       {
         handlerStatus="StatusAvailable";
       }
 
-      if (messageTemp == "StatusProvisioning")
+      if (command == "StatusProvisioning")
       {
         handlerStatus="StatusProvisioning";
         clusterName=String(argument);
       }
 
-      if (messageTemp == "StatusProvisioned")
+      if (command == "StatusProvisioned")
       {
         handlerStatus="StatusProvisioned";
-        clusterIP = String(argument);
+        clusterIP = argument;
       }
   }
-
   // Discard the received messqge
 }
 
@@ -301,12 +308,6 @@ boolean MQTTSetup()
   while (!mqttClient.connected() && i<3)
   {
     Serial.print("Attempting MQTT connection...");
-    // Prepare the LWT message
-    timeStamp = timeClient.getFormattedTime();
-    Message = timeStamp+" "+dashButtonID+" StatusUnavailable";
-    Message.toCharArray(pubMsg, 50);
-    // Attempt to connect, with QoS 1 and LWT message as retained
-    //if (mqttClient.connect(dashButtonID, mqtt_topic, 1, true, pubMsg)) {
     if (mqttClient.connect(dashButtonID, mqtt_user, mqtt_password)) {
       Serial.println("connected");
       // Subscribe
@@ -353,7 +354,6 @@ void drawCiscoLogo()
 {
   Heltec.display->clear();
   // Draw the logo expanding the center line
-  Heltec.display->clear();
   for (int i=0; i<=31; i++)
   {
     Heltec.display->setColor(WHITE);
@@ -375,9 +375,9 @@ void ProgressBar(int stage) {
     // draw the percentage as String
     Heltec.display->setTextAlignment(TEXT_ALIGN_CENTER);
     Heltec.display->setFont(ArialMT_Plain_16);
-    Heltec.display->setColor(BLACK); // alternate colors
+    Heltec.display->setColor(BLACK); // delete previous sign
     Heltec.display->fillRect(45, 30, 30, 20);
-    Heltec.display->setColor(WHITE); // alternate colors
+    Heltec.display->setColor(WHITE); // display percentage
     Heltec.display->drawString(64, 30, String(progress) + "%");
     Heltec.display->display();
     currentProgressBar += 1;
@@ -387,7 +387,7 @@ void ProgressBar(int stage) {
 
 
 void setup() {
-  // Handler status is unknown so we consider it unavailable
+  // Handler status now is unknown so we consider it unavailable
   handlerStatus="StatusUnavailable";
 
   // Initialize serial
@@ -397,7 +397,6 @@ void setup() {
   Heltec.begin(true /*DisplayEnable Enable*/, false /*LoRa Disable*/, true /*Serial Enable*/);
   Heltec.display->clear();
   Heltec.display->setContrast(255);
-
 
   // Show Cisco Logo
   drawCiscoLogo();
@@ -421,18 +420,22 @@ void setup() {
   checkStatus();
 
   // The PubSub MQTT library needs the loop() function to be called to receive the messages
+  // so we call the loop() function up to 30 times until the handler status changes
   if (!mqttClient.connected() )
   {
     MQTTReconnect();
   }
-  for (int e=0; e<30; e++)
+  int e=0;
+  while ( e < 30 && handlerStatus=="StatusUnavailable")
   {
     mqttClient.loop();
     delay(100);
+    e++;
   }
 
   if (handlerStatus =="StatusUnavailable")
   {
+    Serial.println("Handler is unavailable, quitting");
     printMessageAndQuit("Handler", "unavailable", "", 2, 5000);
   }
 
@@ -451,7 +454,7 @@ void setup() {
 
   checkStatus();
   // Wait up to 5 seconds to receive confirm of provisioning
-  int e=0;
+  e=0;
   while ( handlerStatus != "StatusProvisioning" && e<5)
   {
     // The PubSub MQTT library needs the loop() function to be called to receive the messages
