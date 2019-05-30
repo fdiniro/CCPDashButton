@@ -162,7 +162,9 @@ boolean provisionCluster()
   Message.remove(4,1);
 
   // Cluster name will be dashButtonID-timestamp (without the ":")
+  // CCP does not support uppercase letters in the name, so we ensure that the name is lowercase only
   clusterName = String(dashButtonID)+"-"+Message;
+  clusterName.toLowerCase();
 
   // Prepare the MQTT message to be published
   Message = Message+" "+dashButtonID+" ProvisionCluster "+clusterName;
