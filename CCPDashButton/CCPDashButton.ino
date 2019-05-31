@@ -95,16 +95,16 @@ void printMessageAndQuit(char* line1, char* line2, char* line3, int lines, int w
   switch (lines)
   {
     case 1:
-      Heltec.display->drawString(64, 30, String(line1));
+      Heltec.display->drawString(64, 56, String(line1));
     break;
     case 2:
-      Heltec.display->drawString(64, 15, String(line1));
-      Heltec.display->drawString(64, 30, String(line2));
+      Heltec.display->drawString(64, 16, String(line1));
+      Heltec.display->drawString(64, 32, String(line2));
     break;
     case 3:
-      Heltec.display->drawString(64, 15, String(line1));
-      Heltec.display->drawString(64, 30, String(line2));
-      Heltec.display->drawString(64, 45, String(line3));
+      Heltec.display->drawString(64, 8, String(line1));
+      Heltec.display->drawString(64, 24, String(line2));
+      Heltec.display->drawString(64, 40, String(line3));
     break;
     default:
     break;
