@@ -68,7 +68,7 @@ To program the ESP32 you need to install the following libraries in your Arduino
 -	PubSubClient
 -	Heltec ESP32 dev-Boards (if, like me, you’re using that specific kind of board)
 
-Once your IDE is ready you can load the file “CCPDashButton.ino” and customize the settings:
+Once your IDE is ready you can edit the file “CCPDashButton.h” to customize the settings:
 
 -	ssid: specify the SSID of the WiFi network you want your dash button to connect to
 -	password: provide the password of the above network
@@ -76,12 +76,12 @@ Once your IDE is ready you can load the file “CCPDashButton.ino” and customi
 -	mqtt_port = the default MQTT port is 1883, you can eventually use a different port if needed
 -	mqtt_user: the username to authenticate on the MQTT service
 -	mqtt_password: the password for the above username
--	mqtt_topic: the topic that the dash button have to use for the messages that it exchange with the MQTTHandler. The default topic is DashButton but of course you can change it.
+-	mqtt_topic: the topic that the dash button have to use for the messages that it will exchange with the MQTTHandler. The default topic is DashButton but of course you can change it.
 -	myNTPserver: your preferred NTP service, remember that timestamps are used for communications and to generate the cluster name
--	timeOffset: here you can set your timezone as a difference in seconds from Greenwich
+-	timeOffset: here you can set your timezone as a difference in seconds from Greenwich time
 -	dashButtonID: the unique name you want to give to your dash button. Remember to set the same name (case sensitive) also in the MQTTHandler in order to authorize the dash button. 
 -	handlerID: the unique name you will give to your MQTTHandler, this way the dash button knows whose message to listen to
--	averageProvisioningTime: when provisioning a new cluster, the dash button will show a progress bar while waiting for provision completion. As CCP does not provide an indication of the current provision progress we don’t have a mean to understand the real progress of that operation. For this reason the progress bar on the dash button will advance regardless of any event and will reach 99% in the number of seconds specified in this field. So you should measure how much time it takes to provision a cluster in your environment and set a similar length in order to have a rough estimation of remaining time. As soon as the cluster is ready the dash button will complete the progress bar and show the completion informations.;
+-	averageProvisioningTime: when provisioning a new cluster, the dash button will show a progress bar while waiting for provision completion. As CCP does not provide an indication of the current provision progress we don’t have a mean to understand the real progress of that operation. For this reason the progress bar on the dash button will advance regardless of any event and will reach 99% in the number of seconds specified in this field. So you should measure how much time it takes to provision a cluster in your environment and set a similar length in order to have a rough estimation of remaining time. As soon as the cluster is ready the dash button will complete the progress bar and show the completion informations.
 
 
 # The Linux box
@@ -90,5 +90,5 @@ The last component you will need is a Linux box to run the two scripts:
 -	cluster-creator.py (from the DashButton-Backend project from Riccardo Tortorici) trigger a new cluster provisioning supplying the right information in a json schema.
 To setup the Linux box you can follow these steps:
 -	Install mosquito (pub/sub)
--	Follow install guidelines for cluster-creator.py
--	Copy the MQTTHandler, make it executable and launch it
+-	Follow setup guidelines for cluster-creator.py, you will have to capture the REST call that the CCP GUI will  against CCP in order to get the right values and names for your specific infrastructure. This payload will be used as json template to by the cluster-creator.py script 
+-	Copy the MQTTHandler script, make it executable and launch it
