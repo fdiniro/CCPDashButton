@@ -85,7 +85,7 @@ boolean WIFISetUp() {
 }
 
 // Print am error message on the OLED display then wait "wait" milliseconds and then go back to deep sleep
-// the message to be printed may be on one, two or three lines
+// The message to be printed may be on one, two or three lines
 void printMessageAndQuit(char* line1, char* line2, char* line3, int lines, int wait)
 {
   // Print the message on 1, 2 or 3 lines
@@ -167,7 +167,7 @@ boolean provisionCluster()
   clusterName.toLowerCase();
 
   // Prepare the MQTT message to be published
-  Message = Message+" "+dashButtonID+" ProvisionCluster "+clusterName;
+  Message = timeStamp+" "+dashButtonID+" ProvisionCluster "+clusterName;
   Message.toCharArray(pubMsg, 50);
   Serial.println("Publishing the message: ");
   Serial.println(Message);
