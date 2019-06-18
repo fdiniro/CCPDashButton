@@ -204,7 +204,6 @@ void callBack(char* topic, byte* message, unsigned int length) {
 
   // Check that the message is not coming from myself
   if (sender == dashButtonID) {
-    Serial.println("Coming from my self, discarding");
     return;
   }
   // If the message is coming from the right handlerID, then we can take actions
