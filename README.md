@@ -69,7 +69,7 @@ Although different types of microcontroller boards may be used, for this project
 The button is completed with a 3d printed case I designed for it, remixing the "WIFI Kit 32 Case" by snwilson58. You can find 3d models ready to print here: https://www.thingiverse.com/thing:3639502
 
 <br>
-<img width="600" src="https://github.com/fdiniro/CCPDashButton/blob/master/CCPDashButton_buttons.png" />
+<img width="800" src="https://github.com/fdiniro/CCPDashButton/blob/master/CCPDashButton_buttons.png" />
 <br>
 
 To program the ESP32 you need to install the following libraries in your Arduino IDE:
