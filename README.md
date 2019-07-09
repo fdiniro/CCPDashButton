@@ -31,7 +31,9 @@ The message that the MQTTHandler may send in response to the above ones are:
 The dash button sketch has just the setup() routine, then it sleeps to save energy. There is no loop() routine.
 The ESP32 is keept in deep-sleeping and as soon as the enclosure press the “Reset” button so thtat the ESP32 will be woken up and the setup() routine will be executed.
 Here is the flowchart of the Arduino sketch:
-<img width="50"  src="https://github.com/fdiniro/CCPDashButton/blob/master/CCPDashButton_flowchart.png" />
+<br>
+<img width="100" src="https://github.com/fdiniro/CCPDashButton/blob/master/CCPDashButton_flowchart.png" />
+<br>
 
 The button will perform the following actions upon button pressing:
 -	Connect to the WiFi, if unsuccessful show the error and go back to sleep
