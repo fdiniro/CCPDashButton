@@ -32,7 +32,7 @@ The dash button sketch has just the setup() routine, then it sleeps to save ener
 The ESP32 is keept in deep-sleeping and as soon as the enclosure press the “Reset” button so thtat the ESP32 will be woken up and the setup() routine will be executed.
 Here is the flowchart of the Arduino sketch:
 <br>
-<img width="100" src="https://github.com/fdiniro/CCPDashButton/blob/master/CCPDashButton_flowchart.png" />
+<img width="250" src="https://github.com/fdiniro/CCPDashButton/blob/master/CCPDashButton_flowchart.png" />
 <br>
 
 The button will perform the following actions upon button pressing:
@@ -67,6 +67,10 @@ At the current state no proxy is supported nor implemented in the communications
 # The Dash Button
 Although different types of microcontroller boards may be used, for this project I chose an ESP 32 with integrated WiFi and OLED display, containing the size of the whole button with a single device with all the desired features embedded. In this particular example I used a WiFi32 produced by Heltec, which includes a Tensilica LX6 dual core 240Mhz and a 128x64 monochrome OLED display. I attached also a 3.7V 370 mah lithium battery through the 1.25 mm connector on the bottom of the board.
 The button is completed with a 3d printed case I designed for it, remixing the "WIFI Kit 32 Case" by snwilson58. You can find 3d models ready to print here: https://www.thingiverse.com/thing:3639502
+
+<br>
+<img width="600" src="https://github.com/fdiniro/CCPDashButton/blob/master/CCPDashButton_buttons.png" />
+<br>
 
 To program the ESP32 you need to install the following libraries in your Arduino IDE:
 -	NTPClient
