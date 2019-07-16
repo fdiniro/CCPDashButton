@@ -22,6 +22,7 @@ TimeStamp (HH:mm:ss) 		SenderID	 	Verb		Argument
 The messages that the dash button may send are:
 -	Timestamp	DashID		GetStatus
 -	Timestamp	DashID		ProvisionCluster	ClusterName
+
 The message that the MQTTHandler may send in response to the above ones are:
 -	Timestamp	HandlerID	StatusUnavailable
 -	Timestamp	HandlerID  	StatusAvailable
@@ -62,11 +63,14 @@ o	Listener 1080
 
 # WiFi Connectivity
 This is required by the dash button to connect to the network and reach the MQTT service.
-At the current state no proxy is supported nor implemented in the communications between the dash button and the MQTT server.
+At the current state no proxy is supported nor implemented in the communications between the dash button and the MQTT server. 
 
 # The Dash Button
-Although different types of microcontroller boards may be used, for this project I chose an ESP 32 with integrated WiFi and OLED display, containing the size of the whole button with a single device with all the desired features embedded. In this particular example I used a WiFi32 produced by Heltec, which includes a Tensilica LX6 dual core 240Mhz and a 128x64 monochrome OLED display. I attached also a 3.7V 370 mah lithium battery through the 1.25 mm connector on the bottom of the board.
-The button is completed with a 3d printed case I designed for it, remixing the "WIFI Kit 32 Case" by snwilson58. You can find 3d models ready to print here: https://www.thingiverse.com/thing:3639502
+Although different types of microcontroller boards may be used, for this project I chose an ESP 32 with integrated WiFi and OLED display, a board with all the desired features included. In this particular example I used a WiFi32 produced by Heltec, which includes a Tensilica LX6 dual core 240Mhz and a 128x64 monochrome OLED display. I attached also a 3.7V 1000 mah lithium battery through the 1.25 mm connector on the bottom of the board.
+The button is completed with a 3d printed case I designed for it, remixing the "WIFI Kit 32 Case" by snwilson58. I made also a couple of variations to underline the capabilities of Cisco Container Platform to deploy Kubernetes cluster on prem or in the cloud. 
+You can find the 3d models ready to print here: 
+- initial version https://www.thingiverse.com/thing:3639502
+- cloud and on-prem version https://www.thingiverse.com/thing:3751236 
 
 <br>
 <img width="800" src="https://github.com/fdiniro/CCPDashButton/blob/master/CCPDashButton_buttons.png" />
