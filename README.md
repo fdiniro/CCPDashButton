@@ -45,7 +45,12 @@ The button will perform the following actions upon button pressing:
 -	When the handler sends the “StatusProvisioned” message, the dash button will show the argument of this message, that is the IP address of the management for 30 seconds, and then fall again to deep sleep
 
 # Cisco Container Platform 
-The communication with CCP thought its API is currently done invoking the “cluster-creator.py” Python script from “DashButton-Backend” by Riccardo Tortorici, that has been merged into this project under the ccp-provisioner folder. At the current date that script supports both Calico and ACI CNI networking flavors of CCP, allowing you to deploy K8s cluster on any kind of network, or with an automatic integration with Cisco ACI that allows you per-cluster/namespace/deployment/pod network visibility and segmentation and wire-rate HW offloaded K8s load-balanced services. 
+The communication with CCP though its API is currently done invoking the “cluster-creator.py” Python script from “DashButton-Backend” by Riccardo Tortorici, that has been merged into this project under the ccp-provisioner folder. At the current date that script supports both Calico and ACI CNI networking flavors of CCP, allowing you to deploy K8s cluster on any kind of network, or with an automatic integration with Cisco ACI that allows you per-cluster/namespace/deployment/pod network visibility and segmentation and wire-rate HW offloaded K8s load-balanced services. 
+
+<br>
+<img width="800" src="https://github.com/fdiniro/CCPDashButton/blob/master/CCPDashButton_provisioning.png" />
+<br>
+
 Often, the control plane of solutions installed in lab or datacenter environments are behind firewalls and proxies, so we will use a public MQTT service to connect to, and to bridge the communication between the dash button and the CCP install. If you plan to use the dash button in the same network where the CCP has been installed you may get rid of the MQTT, but you should perform a major rewriting of the CCPDashButton code.
 
 # MQTT Service
