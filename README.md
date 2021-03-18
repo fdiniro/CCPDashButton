@@ -1,3 +1,5 @@
+See it in action: https://www.youtube.com/watch?v=-F-xR0XNPBs&t=35s
+
 # Introduction
 CCPDashButton is a simple project to demonstrate the capabilities of [Cisco Container Platform](https://www.cisco.com/c/en/us/products/cloud-systems-management/container-platform/index.html) APIs.
 Cisco Container Platform is a solution capable of provision new, production grade, secure Kubernetes clusters both on-prem or in the cloud with a few clicks.
